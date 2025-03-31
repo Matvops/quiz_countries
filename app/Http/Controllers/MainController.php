@@ -36,35 +36,69 @@ class MainController extends Controller
 
         $quiz = $this->prepareQuiz($total_questions);
 
-        dd($quiz);
+        session()->put([
+            'quiz' => $quiz,
+            'total_questions' => $total_questions,
+            'current_question' => 1,
+            'correct_answers' =>  0,
+            'wrong_answers' =>  0,
+        ]);
+        
+        return redirect()->route('game');
+   }
+
+   public function game(): View
+   {
+        $quiz = session('quiz');
+        $total_questions = session('total_questions');
+        $current_question = session('current_question') - 1;
+
+        $answers = $quiz[$current_question]['wrong_answers'];
+        $answers[] = $quiz[$current_question]['correct_answer'];
+
+        shuffle($answers);
+
+        $gameQuestions = [
+            'country' => $quiz[$current_question]['country'],
+            'totalQuestions' => $total_questions,
+            'currentQuestion' => $current_question,
+            'answers' => $answers,
+        ];
+
+        return view('game')->with($gameQuestions);
    }
 
    private function prepareQuiz($total_questions){
 
         $questions = [];
-        $total_countries = count($this->app_data) - 1;
+        $total_countries = count($this->app_data);
 
-        $indexes = range(0, $total_countries);
+        $indexes = range(0, $total_countries - 1);
         shuffle($indexes);
         $indexes = array_slice($indexes, 0, $total_questions);
 
-        $question_number = 1;
-        foreach($indexes as $index){
-            $question['question_number'] = $question_number++;
-            $question['country'] = $this->app_data[$index]['country'];
-            $question['correct_answer'] = $this->app_data[$index]['capital'];
-
-            $other_capitals = array_column($this->app_data, 'capital');
-
-            $other_capitals = array_diff($other_capitals, [$question['correct_answer']]); 
-
-            shuffle($other_capitals);
-            $question['wrong_answer'] = array_slice($other_capitals, 0, 3);
-
-            $question['correct'] = null;
-            $questions[] = $question;
+        foreach($indexes as $question_number => $index){
+            $questions[] = $this->prepareQuestions($question_number, $index);
         }
 
        return $questions;
+   }
+
+   private function prepareQuestions($question_number, $country_index): array
+   {
+        $question['question_number'] = $question_number++;
+        $question['country'] = $this->app_data[$country_index]['country'];
+        $question['correct_answer'] = $this->app_data[$country_index]['capital'];
+        $question['correct'] = null;
+
+        $other_capitals = array_column($this->app_data, 'capital');
+        $other_capitals = array_diff($other_capitals, [$question['correct_answer']]); 
+        shuffle($other_capitals);
+
+        $question['wrong_answer'] = array_slice($other_capitals, 0, 3);
+
+        
+
+        return $question;
    }
 }
