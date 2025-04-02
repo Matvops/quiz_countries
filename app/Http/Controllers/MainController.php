@@ -95,7 +95,7 @@ class MainController extends Controller
         $other_capitals = array_diff($other_capitals, [$question['correct_answer']]); 
         shuffle($other_capitals);
 
-        $question['wrong_answer'] = array_slice($other_capitals, 0, 3);
+        $question['wrong_answers'] = array_slice($other_capitals, 0, 3);
 
         
 
