@@ -129,8 +129,20 @@ class MainController extends Controller
     }
 
     public function showResult(){
-        echo "issai";
-        dd(session()->all());
+
+        $totalQuestions = session("total_questions");
+        $correctAnswers = session("correct_answers");
+        $wrongAnswers = session('wrong_answers');
+        $percentualAcertos = $correctAnswers / $totalQuestions * 100 ;
+
+        $data = [
+            "totalQuestions" => $totalQuestions,
+            "correctAnswers" => $correctAnswers,
+            "wrongAnswers" => $wrongAnswers,
+            "percentualAcertos" => $percentualAcertos,
+        ];
+    
+        return view('final_result', $data);
     }
 
     private function prepareQuiz($total_questions)
